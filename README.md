@@ -15,3 +15,7 @@ There is a suprising lack of options in the open source market for this.  QuickF
 ## dependencies
 
 Today we include fmtlib for numerics to strings.  Eventually c++ standard will allow `#include <format>` in which case this is no longer an issue.
+
+## build
+
+there's cmake.  It's just there if you want to build examples.  The library is header only, you dont need the provided build system.  FMTLIB is in header-only mode.
