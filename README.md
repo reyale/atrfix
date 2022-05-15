@@ -14,4 +14,4 @@ There is a suprising lack of options in the open source market for this.  QuickF
 
 ## dependencies
 
-Today we include fmtlib for numerics to strings.  Eventually c++ standard will allow #include <format> in which case this is no longer an issue.
+Today we include fmtlib for numerics to strings.  Eventually c++ standard will allow `#include <format>` in which case this is no longer an issue.
