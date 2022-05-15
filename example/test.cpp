@@ -32,7 +32,8 @@ int main() {
       int target_checksum = 157;
       assert(target_checksum == total % atrfix::consts::CHECKSUM_MOD);
 
-      std::string target_checksum_str("050");
+      std::string target_checksum_str("157");
+      assert(target_checksum_str == atrfix::render_checksum(total));
   }
 
 
