@@ -47,7 +47,7 @@ int main() {
   {
 
     unsigned int seqno = 124;
-    const std::string msg = "8=FIX.4.4\0019=0000\00135=D\00149=TESTBUY1\00156=TESTSELL1\00134=000124\00152=20220519-01:52:07.306\001"; //44=44.40\00153=100\00158=TEST message\001";
+    const std::string msg = "8=FIX.4.4\0019=0000\00135=D\00149=TESTBUY1\00156=TESTSELL1\00134=000124\00152=20220519-01:52:07.306\00110=053\001"; //44=44.40\00153=100\00158=TEST message\001";
     atrfix::message fixmsg("8=FIX.4.4", 'D', "TESTBUY1", "TESTSELL1");
 
     time_t time = 1652925127;

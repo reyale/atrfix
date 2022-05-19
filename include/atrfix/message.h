@@ -117,7 +117,7 @@ namespace atrfix {
       const char* checksum = atrfix::render_checksum(total);
       ::strncpy(footer.data + 3, checksum, 3);
      
-      _result.iov[2].iov_len = body_len;
+      _result.iov[1].iov_len = body_len;
       return _result;
     }
 
