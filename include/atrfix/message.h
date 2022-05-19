@@ -48,6 +48,7 @@ namespace atrfix {
 
   template < size_t BODY_SIZE = 1024 >
   class message {
+  public:
     message(const std::string & beginstr, char msgtype, const std::string & sender_comp_id, const std::string & target_comp_id) :  checksum_start_total(0), body_len(0), msglen_write_location(0) {
 
       /*
@@ -59,6 +60,9 @@ namespace atrfix {
       34 	MsgSeqNum 
       52 	SendingTime */
 
+      _header = fmt::format("{}\0019=000\00135={}\00149={}\00156={}\00134=000000\00152={}\001", beginstr.c_str(), msgtype, sender_comp_id.c_str(), target_comp_id.c_str(), "20150916-04:14:05.306");
+
+      /*
       _header += beginstr;
       _header += "9=0000" + consts::FIELD_DELIM;
       _header += "35=" + msgtype + consts::FIELD_DELIM;
@@ -66,6 +70,7 @@ namespace atrfix {
       _header += "56=" + target_comp_id + consts::FIELD_DELIM;
       _header += "34=000000" + consts::FIELD_DELIM;
       _header += "52=20150916-04:14:05.306" + consts::FIELD_DELIM; 
+      */
 
       //location to write the message length to
       msglen_write_location = find_write_location(_header.data(), "9=");
@@ -89,7 +94,7 @@ namespace atrfix {
       iov[0].iov_len = _header.size();
       iov[1].iov_base = body;
       iov[1].iov_len = body_len;
-      iov[2].iov_base = footer.data();
+      iov[2].iov_base = footer.data;
       iov[2].iov_len = footer_t::LEN; 
     }
 
@@ -103,8 +108,8 @@ namespace atrfix {
         throw std::runtime_error("failed to render message, seqno too large");
 
       fmt::format_to(msglen_write_location, "{:04d}", body_len);
-      fmt::format_to(seqno_write_location, "{:06d}}", seqno);
-      fmt::format_to(sendtime_write_location, "{:%Y-%m-%d-%H:%M:%S}", fmt::gmtime(time_utc));
+      fmt::format_to(seqno_write_location, "{:06d}", seqno);
+      fmt::format_to(sendtime_write_location, "{:%Y%m%d-%H:%M:%S}", fmt::gmtime(time_utc));
 
       //write checksum
       unsigned int total = atrfix::add_to_checksum(0, _header.data(), _header.size());
@@ -126,7 +131,7 @@ namespace atrfix {
       if(iter == std::string_view::npos) 
         return nullptr;
 
-      return buffer + iter; 
+      return const_cast<char*>(buffer + iter + tag.size()); 
     }
 
     template < size_t N, typename T >
