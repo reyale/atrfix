@@ -19,14 +19,14 @@ int main() {
   {
     char buffer_dest[25];
     size_t written = atrfix::write_field(buffer_dest, atrfix::fields::BeginString, 10);
-    std::string result("8=10");
+    std::string result("8=10\001");
     assert(std::string_view(buffer_dest, written) == result);
   }
 
   {
     char buffer_dest[25];
     size_t written = atrfix::write_field(buffer_dest, atrfix::fields::MsgType, 1123.45);
-    std::string result("35=1123.45");
+    std::string result("35=1123.45\001");
     assert(std::string_view(buffer_dest, written) == result);
   }
 
@@ -45,17 +45,27 @@ int main() {
   }
 
   {
-
+    time_t time = 1652925127;
     unsigned int seqno = 124;
-    const std::string msg = "8=FIX.4.4\0019=0000\00135=D\00149=TESTBUY1\00156=TESTSELL1\00134=000124\00152=20220519-01:52:07.306\00110=053\001"; //44=44.40\00153=100\00158=TEST message\001";
+
+    const std::string msg = "8=FIX.4.4\0019=0062\00135=D\00149=TESTBUY1\00156=TESTSELL1\00134=000124\00152=20220519-01:52:07.306\00110=061\001"; //44=44.40\00153=100\00158=TEST message\001";
     atrfix::message fixmsg("8=FIX.4.4", 'D', "TESTBUY1", "TESTSELL1");
 
-    time_t time = 1652925127;
     auto sent_msg = sendv(fixmsg.render(seqno, time));
-    std::cout << msg << std::endl;
-    std::cout << sent_msg << std::endl;
+    //std::cout << msg << std::endl;
+    //std::cout << sent_msg << std::endl;
 
     assert(sent_msg == msg);
+
+    const std::string msg2 = "8=FIX.4.4\0019=0071\00135=D\00149=TESTBUY1\00156=TESTSELL1\00134=000124\00152=20220519-01:52:07.306\00144=10.50\00110=215\001";
+    atrfix::message fixmsg2("8=FIX.4.4", 'D', "TESTBUY1", "TESTSELL1");
+    fixmsg2.set_field(atrfix::fields::Price, 10.50);
+
+    sent_msg = sendv(fixmsg2.render(seqno, time));
+    //std::cout << msg2 << std::endl;
+    //std::cout << sent_msg << std::endl;
+    assert(sent_msg == msg2);
+
   }
 
   return 0;

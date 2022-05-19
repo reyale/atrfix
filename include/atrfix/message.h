@@ -17,25 +17,25 @@
 namespace atrfix {
 
   size_t write_val(char* dest, int val) {
-    auto end = fmt::format_to(dest, "{}", val);
+    auto end = fmt::format_to(dest, "{}\001", val);
     return end - dest;
   }
 
   size_t write_val(char* dest, double val) {
-    auto end = fmt::format_to(dest, "{:.2f}", val);
+    auto end = fmt::format_to(dest, "{:.2f}\001", val);
     return end - dest;
   }
 
   size_t write_val(char* dest, time_t val) {
     //20150916-04:14:05.306
-    auto end = fmt::format_to(dest, "{:%Y-%m-%d-%H:%M:%S}", fmt::gmtime(val));
+    auto end = fmt::format_to(dest, "{:%Y%m%d-%H:%M:%S}\001", fmt::gmtime(val));
     return end - dest;
   }
 
   template < size_t N, typename T >
   size_t write_field(char* dest, const char(&field_name)[N], T && t) {
     ::strncpy(dest, field_name, N - 1);
-    char* loc = dest + (N - 1);
+    char* loc = dest + N - 1;
     *loc = '=';
     return N + write_val(dest + N, t);
   }
@@ -49,7 +49,7 @@ namespace atrfix {
   template < size_t BODY_SIZE = 1024 >
   class message {
   public:
-    message(const std::string & beginstr, char msgtype, const std::string & sender_comp_id, const std::string & target_comp_id) :  checksum_start_total(0), body_len(0), msglen_write_location(0) {
+    message(const std::string & beginstr, char msgtype, const std::string & sender_comp_id, const std::string & target_comp_id) : checksum_start_total(0), initial_msg_len(0), body_len(0), msglen_write_location(0) {
 
       /*
       8 	BeginString 	Y 	
@@ -61,16 +61,11 @@ namespace atrfix {
       52 	SendingTime */
 
       _header = fmt::format("{}\0019=0000\00135={}\00149={}\00156={}\00134=000000\00152={}\001", beginstr.c_str(), msgtype, sender_comp_id.c_str(), target_comp_id.c_str(), "20150916-04:14:05.306");
-
-      /*
-      _header += beginstr;
-      _header += "9=0000" + consts::FIELD_DELIM;
-      _header += "35=" + msgtype + consts::FIELD_DELIM;
-      _header += "49=" + sender_comp_id + consts::FIELD_DELIM;
-      _header += "56=" + target_comp_id + consts::FIELD_DELIM;
-      _header += "34=000000" + consts::FIELD_DELIM;
-      _header += "52=20150916-04:14:05.306" + consts::FIELD_DELIM; 
-      */
+      //calc header size
+      auto loc = find_write_location(_header.data(), "35=");
+      if(loc == nullptr)
+          throw std::runtime_error("failure to determine start of payload");
+      initial_msg_len = _header.size() - (loc - _header.data());
 
       //location to write the message length to
       msglen_write_location = find_write_location(_header.data(), "9=");
@@ -107,7 +102,7 @@ namespace atrfix {
       if(seqno > 999999)
         throw std::runtime_error("failed to render message, seqno too large");
 
-      fmt::format_to(msglen_write_location, "{:04d}", body_len);
+      fmt::format_to(msglen_write_location, "{:04d}", body_len + initial_msg_len); 
       fmt::format_to(seqno_write_location, "{:06d}", seqno);
       fmt::format_to(sendtime_write_location, "{:%Y%m%d-%H:%M:%S}", fmt::gmtime(time_utc));
 
@@ -142,6 +137,7 @@ namespace atrfix {
   protected:
     unsigned int checksum_start_total;
     std::string _header;
+    size_t initial_msg_len;
 
     char* body;
     size_t body_len;
