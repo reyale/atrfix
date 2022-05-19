@@ -15,6 +15,7 @@ There is a suprising lack of options in the open source market for this.  QuickF
 ## repeating fields
 
 Q: Where are they?
+
 A: they're overrated - render them yourself using the raw `set_field` functions in the correct order, or inherit from the message class and implement what you need there
 
 Note: I know they're REALLY important in FICC products and some complex options, I still don't care.
