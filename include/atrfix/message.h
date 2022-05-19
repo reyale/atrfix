@@ -93,7 +93,7 @@ namespace atrfix {
       iov[2].iov_len = footer_t::LEN; 
     }
 
-    ~message() { delete body; }
+    ~message() { delete [] body; }
 
     const ioresult& render(unsigned int seqno, time_t time_utc) {
       if(body_len > BODY_SIZE)

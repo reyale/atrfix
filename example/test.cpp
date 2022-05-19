@@ -57,6 +57,8 @@ int main() {
 
     assert(sent_msg == msg);
 
+    //set a field
+
     const std::string msg2 = "8=FIX.4.4\0019=0071\00135=D\00149=TESTBUY1\00156=TESTSELL1\00134=000124\00152=20220519-01:52:07.306\00144=10.50\00110=215\001";
     atrfix::message fixmsg2("8=FIX.4.4", 'D', "TESTBUY1", "TESTSELL1");
     fixmsg2.set_field(atrfix::fields::Price, 10.50);
@@ -64,6 +66,12 @@ int main() {
     sent_msg = sendv(fixmsg2.render(seqno, time));
     //std::cout << msg2 << std::endl;
     //std::cout << sent_msg << std::endl;
+    assert(sent_msg == msg2);
+
+    //reuse the message
+    fixmsg2.reset();
+    fixmsg2.set_field(atrfix::fields::Price, 10.50);
+    sent_msg = sendv(fixmsg2.render(seqno, time));
     assert(sent_msg == msg2);
 
   }
