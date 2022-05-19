@@ -12,6 +12,13 @@ There is a suprising lack of options in the open source market for this.  QuickF
 - examples provided
 - fast
 
+## repeating fields
+
+Q: Where are they?
+A: they're overrated - render them yourself using the raw `set_field` functions in the correct order, or inherit from the message class and implement what you need there
+
+Note: I know they're REALLY important in FICC products and some complex options, I still don't care.
+
 ## dependencies
 
 Today we include fmtlib for numerics to strings.  Eventually c++ standard will allow `#include <format>` in which case this is no longer an issue.
