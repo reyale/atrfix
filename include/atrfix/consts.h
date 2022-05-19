@@ -13,6 +13,9 @@ namespace consts {
 
   constexpr char FIELD_DELIM = '\001';
 
+  namespace beginstrs {
+    constexpr char FIX44[] = "8=FIX.4.4\001";
+  }
 }
 
 }
