@@ -60,7 +60,7 @@ namespace atrfix {
       34 	MsgSeqNum 
       52 	SendingTime */
 
-      _header = fmt::format("{}\0019=000\00135={}\00149={}\00156={}\00134=000000\00152={}\001", beginstr.c_str(), msgtype, sender_comp_id.c_str(), target_comp_id.c_str(), "20150916-04:14:05.306");
+      _header = fmt::format("{}\0019=0000\00135={}\00149={}\00156={}\00134=000000\00152={}\001", beginstr.c_str(), msgtype, sender_comp_id.c_str(), target_comp_id.c_str(), "20150916-04:14:05.306");
 
       /*
       _header += beginstr;
