@@ -20,13 +20,13 @@ namespace atrfix {
     { clock.from_seconds(int()) } -> typename C::timedelta;
   };
 
-  class default_clock_interface {
+  class default_clock {
   public:
     using clock = std::chrono::system_clock;
     using timestamp = std::chrono::time_point<clock>;
     using timedelta = std::chrono::nanoseconds; 
 
-    default_clock_interface() { }
+    default_clock() { }
     timestamp current_time() { return clock::now(); }
 
     timedelta from_seconds(int secs) { return std::chrono::seconds(secs); }
