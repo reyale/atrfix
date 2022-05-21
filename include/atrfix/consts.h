@@ -16,6 +16,8 @@ namespace consts {
   namespace beginstrs {
     constexpr char FIX44[] = "8=FIX.4.4\001";
   }
+
+  static unsigned int STARTING_SEQNO = 1;
 }
 
 }

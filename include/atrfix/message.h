@@ -12,6 +12,7 @@
 #include "atrfix/utils.h"
 #include "atrfix/consts.h"
 #include "atrfix/checksum.h"
+#include "atrfix/fields.h"
 
 
 namespace atrfix {
@@ -46,10 +47,10 @@ namespace atrfix {
     struct iovec iov[3];
   };
 
-  template < size_t BODY_SIZE = 1024 >
   class message {
   public:
-    message(const std::string & beginstr, char msgtype, const std::string & sender_comp_id, const std::string & target_comp_id) : checksum_start_total(0), initial_msg_len(0), body_len(0), msglen_write_location(0) {
+    message(const std::string & beginstr, char msgtype, const std::string & sender_comp_id, const std::string & target_comp_id, size_t body_size=1024) : checksum_start_total(0), initial_msg_len(0), body_len(0), msglen_write_location(0) {
+      _body_capacity = body_size;
 
       /*
       8 	BeginString 	Y 	
@@ -82,7 +83,7 @@ namespace atrfix {
 
       ::strncpy(footer.data, consts::EXAMPLE_FOOTER, footer_t::LEN);
 
-      body = new char[BODY_SIZE]; 
+      body = new char[body_size]; 
 
       auto& iov = _result.iov;
       iov[0].iov_base = _header.data();
@@ -96,7 +97,7 @@ namespace atrfix {
     ~message() { delete [] body; }
 
     const ioresult& render(unsigned int seqno, time_t time_utc) {
-      if(body_len > BODY_SIZE)
+      if(body_len > _body_capacity)
         throw std::runtime_error("fail to render message, length is too large to express"); 
 
       if(seqno > 999999)
@@ -141,6 +142,7 @@ namespace atrfix {
 
     char* body;
     size_t body_len;
+    size_t _body_capacity;
 
     footer_t footer;
 
@@ -148,6 +150,15 @@ namespace atrfix {
     char* seqno_write_location = nullptr;
     char* sendtime_write_location = nullptr;
     struct ioresult _result;
+  };
+
+  class logon : public message { 
+  public:
+    logon(const std::string & beginstr, const std::string & sender_comp_id, const std::string & target_comp_id) : message(beginstr, 'A', sender_comp_id, target_comp_id) { 
+      message::set_field(fields::EncryptMethod, 0); //0 is none
+      message::set_field(fields::HeartBtInt, 30); //in seconds
+    }
+   
   };
 
 }

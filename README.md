@@ -26,4 +26,8 @@ Today we include fmtlib for numerics to strings.  Eventually c++ standard will a
 
 ## build
 
-there's cmake.  It's just there if you want to build examples.  The library is header only, you dont need the provided build system.  FMTLIB is in header-only mode.
+There's cmake.  It's just there if you want to build examples.  The library is header only, you dont need the provided build system.  FMTLIB is in header-only mode.
+
+## examples
+
+You can build them with cmake if that's your thing.   

@@ -50,11 +50,8 @@ namespace atrfix {
         }
 
         _last_seen_msg = clock::now();
-        on_message(working_loc, loc+8);
+        static_cast<implementation*>(this)->on_message(working_loc, loc+8); 
       }
-    }
-
-    void on_message(const char* msgloc, size_t size) {
     }
 
     bool valid_checksum(const char* loc, size_t size) {

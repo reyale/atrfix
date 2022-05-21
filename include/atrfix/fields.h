@@ -13,7 +13,8 @@ namespace fields {
   constexpr char MsgSeqNum[] = "34";
   constexpr char SendingTime[] = "52";
   constexpr char Price[] = "44";
-
+  constexpr char EncryptMethod[] = "98";
+  constexpr char HeartBtInt[] = "108";
 }
 
 }
