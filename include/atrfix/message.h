@@ -66,7 +66,7 @@ namespace atrfix {
       auto loc = find_write_location(_header.data(), "35=");
       if(loc == nullptr)
           throw std::runtime_error("failure to determine start of payload");
-      initial_msg_len = _header.size() - (loc - _header.data());
+      initial_msg_len = _header.size() - (loc - _header.data()) + 3; //+3 to add back 35=
 
       //location to write the message length to
       msglen_write_location = find_write_location(_header.data(), "9=");

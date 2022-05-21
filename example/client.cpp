@@ -11,6 +11,24 @@
 
 using boost::asio::ip::tcp;
 
+std::string
+sendv(const atrfix::ioresult & result) {
+  return fmt::format("{}{}{}", std::string_view((char*)result.iov[0].iov_base, result.iov[0].iov_len),
+                               std::string_view((char*)result.iov[1].iov_base, result.iov[1].iov_len),
+                               std::string_view((char*)result.iov[2].iov_base, result.iov[2].iov_len));
+}
+
+void log_fix(auto && msg) {
+  for(size_t i = 0; i < msg.size(); ++i) {
+    if(msg[i] == '\001')
+       std::cout << "|";
+    else
+       std::cout << msg[i]; 
+  }
+  std::cout << std::endl;
+}
+
+
 class example_session : public atrfix::session<atrfix::default_clock, example_session> {
 public:
   example_session(boost::asio::io_service& io, const std::string & host, const std::string & port) 
@@ -28,7 +46,9 @@ public:
         return;
       }
 
-      //schedule read
+      _connected = true;
+      send_logon(); 
+      //TODO schedule read
     });
   }
 
@@ -46,7 +66,8 @@ protected:
   void send_message(Message & msg) {
     auto now = _clock.current_time();
     auto time = std::chrono::system_clock::to_time_t(now);
-    const auto& result = msg.render(_send_seqno++, time);      
+    const auto& result = msg.render(_send_seqno++, time);     
+    log_fix(sendv(result));
     prime_buffer(result);
     boost::asio::write(_socket, _send_buffer); //blocking send
   }
