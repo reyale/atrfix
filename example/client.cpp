@@ -9,15 +9,15 @@ using boost::asio::ip::tcp;
 
 class example_session : public atrfix::session<atrfix::default_clock, example_session> {
 public:
-  example_session(boost::asio::io_service& io, const std::string & host, const std::string & port) :  _io_service(io), _socket(io), _main_timer(io) {
+  example_session(boost::asio::io_service& io, const std::string & host, const std::string & port) :  _io_service(io), _socket(io), _main_timer(io), _host(host), _port(std::stoi(port)) {
     schedule_maintenance();
   }
 
   void connect() { 
-    std::cout << "try to connect" << std::endl;
-    tcp::resolver resolver(_io_service);
-    auto endpoint_iterator = resolver.resolve({_host, _port});
-    boost::asio::async_connect(_socket, endpoint_iterator, [this](boost::system::error_code ec, tcp::endpoint) {
+    std::cout << "try to connect: " << _host << ":" << _port << std::endl;
+    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(_host.c_str()), _port);
+
+    _socket.async_connect(endpoint, [this](boost::system::error_code ec) {
       if(ec) {
         std::cout << "failed to connect" << std::endl;
         return;
@@ -46,7 +46,7 @@ protected:
   boost::asio::io_service& _io_service;
   tcp::socket _socket;
   std::string _host;
-  std::string _port;
+  int _port;
   boost::asio::deadline_timer _main_timer;
 };
 
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 
     boost::asio::io_service io_service;
 
-    example_session session(io_service, argv[0], argv[1]);
+    example_session session(io_service, argv[1], argv[2]);
 
     running = true;
     while(running)
