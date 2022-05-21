@@ -5,6 +5,7 @@
 #include "atrfix/fields.h"
 #include "atrfix/checksum.h"
 #include "atrfix/message.h"
+#include "atrfix/parser.h"
 
 
 std::string 
@@ -16,6 +17,7 @@ sendv(const atrfix::ioresult & result) {
 
 int main() { 
 
+  /*
   {
     char buffer_dest[25];
     size_t written = atrfix::write_field(buffer_dest, atrfix::fields::BeginString, 10);
@@ -73,6 +75,31 @@ int main() {
     fixmsg2.set_field(atrfix::fields::Price, 10.50);
     sent_msg = sendv(fixmsg2.render(seqno, time));
     assert(sent_msg == msg2);
+
+  } */
+
+  {
+    std::vector<std::pair<int, std::string>> result;
+    auto append_result = [&result](int tag, const char* val, size_t val_len) {
+      result.push_back(std::make_pair(tag, std::string(val, val_len)));
+    };
+
+    const std::string single_field("8=FIX.4.4\001");
+    atrfix::parse_message(single_field.c_str(), single_field.size(), append_result); 
+
+    assert(result.size() == 1);
+    assert(result[0].first == 8);
+    assert(result[0].second == "FIX.4.4");
+
+    result.clear();
+    const std::string multi_field("8=FIX.4.4\0019=0071\001");
+    atrfix::parse_message(multi_field.c_str(), multi_field.size(), append_result);
+
+    assert(result.size() == 2);
+    assert(result[0].first == 8);
+    assert(result[0].second == "FIX.4.4");
+    assert(result[1].first == 9);
+    assert(result[1].second == "0071");
 
   }
 
