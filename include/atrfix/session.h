@@ -33,10 +33,10 @@ namespace atrfix {
       }
     }
 
-    void on_read(const char* read, size_t size) {
+    void handle_read(const char* read, size_t size) {
       const char* working_loc = read;
       while(true) { //TCP stream, can recieve several messages
-        auto view = std::string_view(read, size);
+        auto view = std::string_view(working_loc, size - (working_loc - read));
         auto loc = view.find("\00110=");
         if(loc == std::string_view::npos)
           break;
@@ -49,8 +49,9 @@ namespace atrfix {
           continue; 
         }
 
-        _last_seen_msg = clock::now();
+        _last_seen_msg = _clock.current_time();
         static_cast<implementation*>(this)->on_message(working_loc, loc+8); 
+        working_loc += loc + 8;
       }
     }
 

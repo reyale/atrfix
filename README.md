@@ -2,15 +2,16 @@
 
 lightweight header only FIX engine
 
-There is a suprising lack of options in the open source market for this.  QuickFIX is kind of standard but it's dog slow and its data-dictionary xml model is ridiculous.
+There is a suprising lack of options in the open-source world for this.  QuickFIX is kind of standard but it's dog slow and its data-dictionary XML model is ridiculous.
 
 ## goals
 
 - header only
 - minimal dependencies
-- easily integrated in to reactor or proactor frameworks
-- examples provided
+- easily integrated in to reactor or proactor frameworks like boost:asio, libevent, ect
+- seperation of session and message creation/parsing
 - fast
+- examples provided
 
 ## repeating fields
 
@@ -30,4 +31,6 @@ There's cmake.  It's just there if you want to build examples.  The library is h
 
 ## examples
 
-You can build them with cmake if that's your thing.   
+You can build them with cmake if that's your thing. 
+
+"client.cpp" is a boost::asio FIX client.  

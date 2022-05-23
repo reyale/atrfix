@@ -1,12 +1,14 @@
 #include <cstdlib>
 #include <array>
 #include <iostream>
+#include <strings.h>
 
 #include <boost/asio.hpp>
 
 #include "atrfix/session.h"
 #include "atrfix/message.h"
 #include "atrfix/consts.h"
+#include "atrfix/rwbuffer.h"
 
 
 using boost::asio::ip::tcp;
@@ -32,7 +34,8 @@ void log_fix(auto && msg) {
 class example_session : public atrfix::session<atrfix::default_clock, example_session> {
 public:
   example_session(boost::asio::io_service& io, const std::string & host, const std::string & port) 
-    :  _io_service(io), _socket(io), _main_timer(io), _host(host), _port(std::stoi(port)), _logon_msg("8=FIX.4.4", "SENDERCOMP", "TARGETCOMP") {
+    :  _io_service(io), _socket(io), _main_timer(io), _host(host), _port(std::stoi(port)), _logon_msg("8=FIX.4.4", "SENDERCOMP", "TARGETCOMP"), _read_buffer(1024) {
+
     schedule_maintenance();
   }
 
@@ -48,17 +51,22 @@ public:
 
       _connected = true;
       send_logon(); 
-      //TODO schedule read
+      schedule_read(); 
     });
   }
 
-  void disconnect() { }
+  void disconnect() {
+    _connected = false; 
+  }
+
   void send_logon() { 
     if(!_logged_in)
       send_message(_logon_msg);
   }
 
   void on_message(const char* buffer, size_t len) {
+    _read_buffer.mark_read(len);
+    std::cout << "< "; log_fix(std::string_view(buffer, len)); 
   }
 
 protected:
@@ -67,9 +75,14 @@ protected:
     auto now = _clock.current_time();
     auto time = std::chrono::system_clock::to_time_t(now);
     const auto& result = msg.render(_send_seqno++, time);     
-    log_fix(sendv(result));
+    std::cout << "> "; log_fix(sendv(result));
     prime_buffer(result);
-    boost::asio::write(_socket, _send_buffer); //blocking send
+
+    boost::system::error_code ec;
+    boost::asio::write(_socket, _send_buffer, ec); //blocking send
+    if(ec) {
+      disconnect();
+    }
   }
 
   void prime_buffer(const atrfix::ioresult & result) {
@@ -92,6 +105,20 @@ protected:
     });
   }
 
+  void schedule_read() {
+    auto [buffer, size] = _read_buffer.write_loc();
+    _socket.async_read_some(boost::asio::buffer(buffer, size), [this](const boost::system::error_code& ec, size_t bytes_read) { 
+      if(ec)
+        return; 
+    
+      _read_buffer.mark_write(bytes_read); 
+      auto [read_buffer, size] = _read_buffer.read_loc();
+      handle_read(read_buffer, size);
+      _read_buffer.compact(); 
+      schedule_read(); 
+    });
+  }
+
   boost::asio::io_service& _io_service;
   tcp::socket _socket;
   std::string _host;
@@ -101,6 +128,8 @@ protected:
   unsigned int _send_seqno = atrfix::consts::STARTING_SEQNO;
   unsigned int _expected_recv_seqno = atrfix::consts::STARTING_SEQNO;
   std::array<boost::asio::const_buffer, 3> _send_buffer;
+
+  atrfix::rwbuffer _read_buffer;
 };
 
 
@@ -115,24 +144,18 @@ int main(int argc, char* argv[])
 {
   signal(SIGINT, sig_handler);
 
-  try {
-    if (argc != 3)
-    {
-      std::cerr << "Usage: <host> <port>\n";
-      return 1;
-    }
-
-    boost::asio::io_service io_service;
-
-    example_session session(io_service, argv[1], argv[2]);
-
-    running = true;
-    while(running)
-      io_service.run_for(std::chrono::seconds(1));
-
-  } catch (std::exception& e) {
-    std::cerr << "Exception: " << e.what() << std::endl; 
+  if (argc != 3) {
+    std::cerr << "Usage: <host> <port>\n";
+    return 1;
   }
+
+  boost::asio::io_service io_service;
+
+  example_session session(io_service, argv[1], argv[2]);
+
+  running = true;
+  while(running)
+    io_service.run_for(std::chrono::seconds(1));
 
   return 0;
 }
