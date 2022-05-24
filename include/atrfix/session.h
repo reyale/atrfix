@@ -4,6 +4,7 @@
 
 #include "atrfix/clock.h"
 #include "atrfix/parser.h"
+#include "atrfix/message.h"
 
 
 namespace atrfix {
@@ -11,11 +12,18 @@ namespace atrfix {
   template < clock_interface clock, typename implementation > 
   class session {
   public:
-    session() : _connected(false), _logged_in(false) { _hb_interval = _clock.from_seconds(30); }
+    session(const std::string & sendercomp, const std::string& targetcomp, const std::string & beginstr=consts::beginstrs::FIX44) 
+        : _connected(false), _logged_in(false), 
+        _heartbeat_msg(beginstr, sendercomp, targetcomp), 
+        _logon_msg(beginstr, sendercomp, targetcomp),
+        _hb_interval(_clock.from_seconds(30)) { }
 
     //for child class to implement
     void disconnect() { }
-    void send_heartbeat() { }
+
+    template < typename Msg >
+    void send_message(const Msg & msg) {
+    }
 
     void maintain_connection() {
       if(!_connected) {
@@ -24,7 +32,7 @@ namespace atrfix {
       }
 
       if(!_logged_in) {
-        static_cast<implementation*>(this)->send_logon(); 
+        send_logon(); 
         return;
       }
 
@@ -36,7 +44,7 @@ namespace atrfix {
       }
 
       if((current_time - _last_sent_msg) > _hb_interval) {
-        static_cast<implementation*>(this)->send_heartbeat();
+        static_cast<implementation*>(this)->send_message(_heartbeat_msg);
         _last_sent_msg = current_time;
       }
     }
@@ -97,12 +105,22 @@ namespace atrfix {
     }
 
   protected:
+    void send_logon() {
+      if(!_connected)
+        return;
+
+      if(!_logged_in)
+        static_cast<implementation*>(this)->send_message(_logon_msg); 
+    }
+
     clock _clock;
     clock::timestamp _last_seen_msg;
     clock::timestamp _last_sent_msg;
     clock::timedelta _hb_interval;
     bool _connected;
-    bool _logged_in; 
+    bool _logged_in;
+    atrfix::heartbeat _heartbeat_msg;
+    atrfix::logon _logon_msg; 
   };
 
 }

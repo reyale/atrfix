@@ -14,12 +14,13 @@
 using boost::asio::ip::tcp;
 using namespace example;
 
-class example_session : public atrfix::session<atrfix::default_clock, example_session> {
+class example_session;
+using parent_session = atrfix::session<atrfix::default_clock, example_session>;
+
+class example_session : public parent_session { 
 public:
   example_session(boost::asio::io_service& io, const std::string & host, const std::string & port) 
-    :  _io_service(io), _socket(io), _main_timer(io), _host(host), _port(std::stoi(port)), 
-       _logon_msg("8=FIX.4.4", "SENDERCOMP", "TARGETCOMP"), 
-       _heartbeat_msg("8=FIX.4.4", "SENDERCOMP", "TARGETCOMP"), 
+    : parent_session("SENDERCOMP", "TARGETCOMP"),  _io_service(io), _socket(io), _main_timer(io), _host(host), _port(std::stoi(port)), 
        _read_buffer(1024) {
 
     schedule_maintenance();
@@ -48,27 +49,11 @@ public:
     _read_buffer.reset();
   }
 
-  void send_logon() { 
-    if(!_connected)
-      return;
-
-    if(!_logged_in)
-      send_message(_logon_msg);
-  }
-
-  void send_heartbeat() {
-    if(!session_ready())
-      return;
-
-    send_message(_heartbeat_msg);
-  }
-
   void on_message(const char* buffer, size_t len) {
     _read_buffer.mark_read(len);
     std::cout << "< "; log_fix(std::string_view(buffer, len)); 
   }
 
-protected:
   template < typename Message >
   void send_message(Message & msg) {
     auto now = _clock.current_time();
@@ -85,6 +70,7 @@ protected:
     _last_sent_msg = _clock.current_time();
   }
 
+protected:
   void schedule_maintenance() {
     //maintenance timer for session  
     _main_timer.expires_from_now(boost::posix_time::seconds(15)); 
@@ -117,13 +103,10 @@ protected:
   int _port;
   boost::asio::deadline_timer _main_timer;
 
-  atrfix::logon _logon_msg;
-  atrfix::heartbeat _heartbeat_msg;
-
   unsigned int _send_seqno = atrfix::consts::STARTING_SEQNO;
   unsigned int _expected_recv_seqno = atrfix::consts::STARTING_SEQNO;
-  asio_send_buffer _send_buffer;
 
+  asio_send_buffer _send_buffer;
   atrfix::rwbuffer _read_buffer;
 };
 
