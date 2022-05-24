@@ -2,6 +2,8 @@
 
 #include <charconv>
 
+#include "atrfix/consts.h"
+
 
 namespace atrfix {
 
@@ -37,6 +39,40 @@ namespace atrfix {
         tag = -1;
       }
     }
+  }
+
+  struct __attribute__((__packed__)) msgtype1 {
+    char delim;
+    char three;
+    char five;
+    char equals;
+    char type;
+    char end_delim;
+  };
+
+  struct __attribute__((__packed__)) msgtype2 {
+    char delim;
+    char three;
+    char five;
+    char equals;
+    char type_one;
+    char type_two;
+    char end_delim;
+  };
+
+  inline char parse_msg_type(const char* buffer) {
+    auto msg1 = reinterpret_cast<const msgtype1*>(buffer);
+    if(msg1->end_delim == consts::FIELD_DELIM) {
+      return msg1->type; 
+    }
+
+    auto msg2 = reinterpret_cast<const msgtype2*>(buffer);
+    if(msg2->end_delim == consts::FIELD_DELIM) {
+      //TODO - unhandled for now
+      return consts::msgtype::INVALID; 
+    }
+
+    return consts::msgtype::INVALID;
   }
 
 }

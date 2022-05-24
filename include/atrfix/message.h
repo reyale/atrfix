@@ -158,7 +158,11 @@ namespace atrfix {
       message::set_field(fields::EncryptMethod, 0); //0 is none
       message::set_field(fields::HeartBtInt, 30); //in seconds
     }
-   
+  };
+
+  class heartbeat : public message {
+  public:
+    heartbeat(const std::string & beginstr, const std::string & sender_comp_id, const std::string & target_comp_id) : message(beginstr, '0', sender_comp_id, target_comp_id) { }
   };
 
 }

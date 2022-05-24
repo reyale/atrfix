@@ -30,11 +30,13 @@ void log_fix(auto && msg) {
   std::cout << std::endl;
 }
 
-
 class example_session : public atrfix::session<atrfix::default_clock, example_session> {
 public:
   example_session(boost::asio::io_service& io, const std::string & host, const std::string & port) 
-    :  _io_service(io), _socket(io), _main_timer(io), _host(host), _port(std::stoi(port)), _logon_msg("8=FIX.4.4", "SENDERCOMP", "TARGETCOMP"), _read_buffer(1024) {
+    :  _io_service(io), _socket(io), _main_timer(io), _host(host), _port(std::stoi(port)), 
+       _logon_msg("8=FIX.4.4", "SENDERCOMP", "TARGETCOMP"), 
+       _heartbeat_msg("8=FIX.4.4", "SENDERCOMP", "TARGETCOMP"), 
+       _read_buffer(1024) {
 
     schedule_maintenance();
   }
@@ -56,12 +58,25 @@ public:
   }
 
   void disconnect() {
-    _connected = false; 
+    _connected = false;
+    _logged_in = false;
+    _socket.close();
+    _read_buffer.reset();
   }
 
   void send_logon() { 
+    if(!_connected)
+      return;
+
     if(!_logged_in)
       send_message(_logon_msg);
+  }
+
+  void send_heartbeat() {
+    if(!session_ready())
+      return;
+
+    send_message(_heartbeat_msg);
   }
 
   void on_message(const char* buffer, size_t len) {
@@ -83,6 +98,7 @@ protected:
     if(ec) {
       disconnect();
     }
+    _last_sent_msg = _clock.current_time();
   }
 
   void prime_buffer(const atrfix::ioresult & result) {
@@ -124,7 +140,10 @@ protected:
   std::string _host;
   int _port;
   boost::asio::deadline_timer _main_timer;
+
   atrfix::logon _logon_msg;
+  atrfix::heartbeat _heartbeat_msg;
+
   unsigned int _send_seqno = atrfix::consts::STARTING_SEQNO;
   unsigned int _expected_recv_seqno = atrfix::consts::STARTING_SEQNO;
   std::array<boost::asio::const_buffer, 3> _send_buffer;

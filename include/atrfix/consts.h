@@ -17,6 +17,23 @@ namespace consts {
     constexpr char FIX44[] = "8=FIX.4.4\001";
   }
 
+  namespace msgtype { 
+    constexpr char Heartbeat = '0';
+    constexpr char TestRequest = '1';
+    constexpr char ResendRequest = '2';
+    constexpr char Reject = '3';
+    constexpr char SequenceReset = '4';
+    constexpr char Logout = '5';
+    constexpr char IndicationofInterest = '6';
+    constexpr char ExecutionReport = '8';
+    constexpr char OrderCancelReject = '9';
+    constexpr char Logon = 'A';
+    constexpr char Order = 'D';
+    constexpr char OrderCancelRequest = 'F';
+    constexpr char OrderCancelReplaceRequest = 'G';
+    constexpr char INVALID = '\001';
+  }
+
   static unsigned int STARTING_SEQNO = 1;
 }
 
