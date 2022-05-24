@@ -67,8 +67,17 @@ namespace atrfix {
         }
 
         view = std::string_view(working_loc, loc+8);
-        //validate seqno
-        //TODO        
+        auto seqno_location = view.find("\00134=");
+        if(seqno_location == std::string_view::npos) {
+          static_cast<implementation*>(this)->disconnect();
+          return;
+        }
+
+        auto [tag, seqno] = parse_singular_field(working_loc + seqno_location + 1, ((loc+8) - seqno_location -1), parse_seqno_value);
+        if(tag == -1 || seqno == -1) {
+          static_cast<implementation*>(this)->disconnect();
+          return;
+        }
 
         auto msg_type_location = view.find("\00135=");
         if(msg_type_location == std::string_view::npos) {
@@ -78,8 +87,8 @@ namespace atrfix {
 
         char msgtype = parse_msg_type(working_loc + msg_type_location);
         if(msgtype == consts::msgtype::INVALID) {
-          working_loc += loc + 8;
-          continue;
+          static_cast<implementation*>(this)->disconnect();
+          return; 
         }
 
         if(msgtype == consts::msgtype::Logout) {

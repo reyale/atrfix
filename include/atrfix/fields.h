@@ -15,6 +15,7 @@ namespace fields {
   constexpr char Price[] = "44";
   constexpr char EncryptMethod[] = "98";
   constexpr char HeartBtInt[] = "108";
+
 }
 
 }

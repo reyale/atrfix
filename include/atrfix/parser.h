@@ -41,6 +41,45 @@ namespace atrfix {
     }
   }
 
+  inline seqno parse_seqno_value(const char* field, size_t len) {
+    if(field == nullptr || len <= 0)
+      return -1;
+
+    seqno s;
+    auto res = std::from_chars(field, field+len, s);
+    if(res.ec != std::errc())
+      return -1;
+
+    return s; 
+  }
+
+  template < typename Transform >
+  auto parse_singular_field(const char* msg, size_t len, Transform transform) {
+    const char* token_start = msg;
+    int tag = -1;
+
+    for(size_t i = 0; i < len; ++i) {
+      char working = msg[i];
+      if(tag == -1) { 
+        if(working == '=') {
+          size_t tag_len = ((msg +i) - token_start); 
+          auto result = std::from_chars(token_start, msg + i, tag); //from_chars seems a lot faster that stoi, ect
+          if(result.ec != std::errc())
+            return std::make_tuple(-1, transform(nullptr, 0)); 
+          
+          token_start = msg + i + 1;
+        }
+        
+        continue;
+      }
+
+      if(msg[i] == '\001')
+        return std::make_tuple(tag, transform(token_start, ((msg + i)-token_start)));
+    }
+
+    return std::make_tuple(-1, transform(nullptr, 0)); 
+  }
+
   struct __attribute__((__packed__)) msgtype1 {
     char delim;
     char three;
