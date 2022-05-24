@@ -10,7 +10,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts")
 
 add_definitions(-DFMT_HEADER_ONLY=1)
 
-include_directories(include thirdparty)
+include_directories(include thirdparty example/include)
 
 find_package(Boost COMPONENTS thread REQUIRED)
 
