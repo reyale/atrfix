@@ -5,11 +5,12 @@
 #include "atrfix/clock.h"
 #include "atrfix/parser.h"
 #include "atrfix/message.h"
+#include "atrfix/seqnum.h"
 
 
 namespace atrfix {
  
-  template < clock_interface clock, typename implementation > 
+  template < clock_interface clock, seqnum_store_interface seqno_store, typename implementation > 
   class session {
   public:
     session(const std::string & sendercomp, const std::string& targetcomp, const std::string & beginstr=consts::beginstrs::FIX44) 
@@ -120,7 +121,9 @@ namespace atrfix {
     bool _connected;
     bool _logged_in;
     atrfix::heartbeat _heartbeat_msg;
-    atrfix::logon _logon_msg; 
+    atrfix::logon _logon_msg;
+    seqno_store _send_seqno;
+    seqno_store _recv_seqno; 
   };
 
 }

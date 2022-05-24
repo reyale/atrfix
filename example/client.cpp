@@ -11,11 +11,12 @@
 #include "atrfix/rwbuffer.h"
 #include "example_utils.h"
 
+
 using boost::asio::ip::tcp;
 using namespace example;
 
 class example_session;
-using parent_session = atrfix::session<atrfix::default_clock, example_session>;
+using parent_session = atrfix::session<atrfix::default_clock, atrfix::inmemory_seqnum_store, example_session>;
 
 class example_session : public parent_session { 
 public:
@@ -58,7 +59,7 @@ public:
   void send_message(Message & msg) {
     auto now = _clock.current_time();
     auto time = std::chrono::system_clock::to_time_t(now);
-    const auto& result = msg.render(_send_seqno++, time);     
+    const auto& result = msg.render(_send_seqno.current(), time);     
     std::cout << "> "; log_fix(sendv(result));
     prime_buffer(result, _send_buffer);
 
@@ -67,6 +68,8 @@ public:
     if(ec) {
       disconnect();
     }
+
+    _send_seqno.increment();
     _last_sent_msg = _clock.current_time();
   }
 
@@ -102,9 +105,6 @@ protected:
   std::string _host;
   int _port;
   boost::asio::deadline_timer _main_timer;
-
-  unsigned int _send_seqno = atrfix::consts::STARTING_SEQNO;
-  unsigned int _expected_recv_seqno = atrfix::consts::STARTING_SEQNO;
 
   asio_send_buffer _send_buffer;
   atrfix::rwbuffer _read_buffer;

@@ -3,6 +3,8 @@
 
 namespace atrfix {
 
+using seqno = unsigned int;
+
 namespace consts {
 
   constexpr int CHECKSUM_MOD = 256;
@@ -34,7 +36,7 @@ namespace consts {
     constexpr char INVALID = '\001';
   }
 
-  static unsigned int STARTING_SEQNO = 1;
+  static seqno STARTING_SEQNO = 1;
 }
 
 }
