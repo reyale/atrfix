@@ -75,7 +75,7 @@ protected:
     auto time = std::chrono::system_clock::to_time_t(now);
     const auto& result = msg.render(_send_seqno++, time);     
     std::cout << "> "; log_fix(sendv(result));
-    prime_buffer(result);
+    prime_buffer(result, _send_buffer);
 
     boost::system::error_code ec;
     boost::asio::write(_socket, _send_buffer, ec); //blocking send
@@ -83,14 +83,6 @@ protected:
       disconnect();
     }
     _last_sent_msg = _clock.current_time();
-  }
-
-  void prime_buffer(const atrfix::ioresult & result) {
-    auto& tosend = result.iov;
-    //boost asio doesn't want raw iov because stupid
-    _send_buffer[0] = boost::asio::buffer(tosend[0].iov_base, tosend[0].iov_len);
-    _send_buffer[1] = boost::asio::buffer(tosend[1].iov_base, tosend[1].iov_len);
-    _send_buffer[2] = boost::asio::buffer(tosend[2].iov_base, tosend[2].iov_len);
   }
 
   void schedule_maintenance() {
@@ -130,7 +122,7 @@ protected:
 
   unsigned int _send_seqno = atrfix::consts::STARTING_SEQNO;
   unsigned int _expected_recv_seqno = atrfix::consts::STARTING_SEQNO;
-  std::array<boost::asio::const_buffer, 3> _send_buffer;
+  asio_send_buffer _send_buffer;
 
   atrfix::rwbuffer _read_buffer;
 };
