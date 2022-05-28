@@ -17,7 +17,8 @@ namespace atrfix {
         : _connected(false), _logged_in(false), 
         _heartbeat_msg(beginstr, sendercomp, targetcomp), 
         _logon_msg(beginstr, sendercomp, targetcomp),
-        _hb_interval(_clock.from_seconds(30)) { }
+        _sequence_reset(beginstr, sendercomp, targetcomp),
+        _hb_interval(_clock.from_seconds(45)) { }
 
     //for child class to implement
     void disconnect() { }
@@ -79,6 +80,17 @@ namespace atrfix {
           return;
         }
 
+        if(seqno > _recv_seqno.current()) {
+          //send replay request, for now disconnect
+          static_cast<implementation*>(this)->disconnect();
+          return;
+        }
+
+        if(seqno < _recv_seqno.current())
+          _recv_seqno.set(seqno+1); //if we're ahead we just accept
+        else
+          _recv_seqno.increment();
+
         auto msg_type_location = view.find("\00135=");
         if(msg_type_location == std::string_view::npos) {
           static_cast<implementation*>(this)->disconnect();
@@ -94,6 +106,26 @@ namespace atrfix {
         if(msgtype == consts::msgtype::Logout) {
           static_cast<implementation*>(this)->disconnect();
           return;
+        }
+
+        if(msgtype == consts::msgtype::ResendRequest) { //always reset seqno instead of replaying to counterparty, orders would be stale
+          auto endseqno_loc = view.find("\00116=");
+          if(endseqno_loc == std::string_view::npos) {
+            static_cast<implementation*>(this)->disconnect();
+            return;
+          }
+
+          auto [endseqno_tag, endseqno] = parse_singular_field(working_loc + endseqno_loc + 1, ((loc+8) - endseqno_loc -1), parse_seqno_value);
+          if(endseqno_tag == -1 || endseqno == -1) {
+            static_cast<implementation*>(this)->disconnect();
+            return;
+          }
+
+          _sequence_reset.reset();
+          _sequence_reset.set_field(atrfix::fields::GapFillFlag, 'N');
+          _sequence_reset.set_field(atrfix::fields::NewSeqNo, endseqno + 1);
+          static_cast<implementation*>(this)->send_message(_sequence_reset);
+          _send_seqno.set(endseqno + 1); //the next thing we will send is beyond the end of the replay request
         }
 
         //handle session login
@@ -131,6 +163,7 @@ namespace atrfix {
     bool _logged_in;
     atrfix::heartbeat _heartbeat_msg;
     atrfix::logon _logon_msg;
+    atrfix::sequence_reset _sequence_reset;
     seqno_store _send_seqno;
     seqno_store _recv_seqno; 
   };

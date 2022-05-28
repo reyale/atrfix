@@ -22,6 +22,11 @@ namespace atrfix {
     return end - dest;
   }
 
+  size_t write_val(char* dest, unsigned int val) {
+    auto end = fmt::format_to(dest, "{}\001", val);
+    return end - dest;
+  }
+
   size_t write_val(char* dest, double val) {
     auto end = fmt::format_to(dest, "{:.2f}\001", val);
     return end - dest;
@@ -165,4 +170,8 @@ namespace atrfix {
     heartbeat(const std::string & beginstr, const std::string & sender_comp_id, const std::string & target_comp_id) : message(beginstr, '0', sender_comp_id, target_comp_id) { }
   };
 
+  class sequence_reset : public message {
+  public:
+    sequence_reset(const std::string & beginstr, const std::string & sender_comp_id, const std::string & target_comp_id) : message(beginstr, '4', sender_comp_id, target_comp_id) { }
+  };
 }
