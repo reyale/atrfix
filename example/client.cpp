@@ -83,7 +83,7 @@ protected:
     //maintenance timer for session  
     _main_timer.expires_from_now(boost::posix_time::seconds(15)); 
     _main_timer.async_wait([this](const boost::system::error_code& ec) {
-      if(ec) //in practice only handles when io-service destroys and a timer is scheduled 
+      if(ec) //in practice only happens when io-service destroys and a timer is scheduled 
         return;
 
       maintain_connection();
@@ -102,7 +102,7 @@ protected:
       _read_buffer.mark_write(bytes_read);
       auto [read_buffer, size] = _read_buffer.read_loc();
       handle_read(read_buffer, size);
-      _read_buffer.compact(); 
+      _read_buffer.compact();
       schedule_read(); 
     });
   }
