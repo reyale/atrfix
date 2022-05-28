@@ -27,4 +27,16 @@ namespace atrfix {
   protected:
     std::ofstream _file;
   };
+
+  class stdout_logger {
+  public:
+    stdout_logger() { }
+
+    template < class ... Args >
+    size_t log(const char* fmt, Args&&...args) {
+      fmt::print(fmt, args...);
+      return 0;
+    }
+
+  };
 }

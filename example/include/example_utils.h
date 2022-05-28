@@ -11,14 +11,15 @@
                                std::string_view((char*)result.iov[2].iov_base, result.iov[2].iov_len));
     }
 
-    void log_fix(auto && msg) {
+    std::string render_fix_visible(auto && msg) {
+      std::stringstream ss;
       for(size_t i = 0; i < msg.size(); ++i) {
         if(msg[i] == '\001')
-          std::cout << "|";
+          ss << "|";
         else
-          std::cout << msg[i];
+          ss << msg[i];
       }
-      std::cout << std::endl;
+      return ss.str();
     }
 
     void prime_buffer(const atrfix::ioresult & result, asio_send_buffer & send_buffer) {
