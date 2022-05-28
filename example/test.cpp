@@ -17,7 +17,6 @@ sendv(const atrfix::ioresult & result) {
 
 int main() { 
 
-  /*
   {
     char buffer_dest[25];
     size_t written = atrfix::write_field(buffer_dest, atrfix::fields::BeginString, 10);
@@ -31,6 +30,15 @@ int main() {
     std::string result("35=1123.45\001");
     assert(std::string_view(buffer_dest, written) == result);
   }
+
+  {
+    char buffer_dest[30];
+    size_t written = atrfix::write_field(buffer_dest, atrfix::fields::Text, "this is a message"); 
+    std::string result("58=this is a message\001");
+    assert(std::string_view(buffer_dest, written) == result);
+  }
+
+  /*
 
   {
       //8=FIX.4.2|9=49|35=5|34=1|49=ARCA|52=20150916-04:14:05.306|56=TW|10=157|

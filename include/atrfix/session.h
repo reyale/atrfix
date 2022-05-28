@@ -18,6 +18,7 @@ namespace atrfix {
         _heartbeat_msg(beginstr, sendercomp, targetcomp), 
         _logon_msg(beginstr, sendercomp, targetcomp),
         _sequence_reset(beginstr, sendercomp, targetcomp),
+        _session_reject(beginstr, sendercomp, targetcomp),
         _hb_interval(_clock.from_seconds(45)) { }
 
     //for child class to implement
@@ -81,14 +82,19 @@ namespace atrfix {
         }
 
         if(seqno > _recv_seqno.current()) {
-          //send replay request, for now disconnect
+          //TODO send replay request, for now disconnect
           static_cast<implementation*>(this)->disconnect();
           return;
         }
 
-        if(seqno < _recv_seqno.current())
-          _recv_seqno.set(seqno+1); //if we're ahead we just accept
-        else
+        if(seqno < _recv_seqno.current()) {
+          _session_reject.reset();
+          _session_reject.set_field(atrfix::fields::RefSeqNum, seqno);
+          _session_reject.set_field(atrfix::fields::Text, "seqno is behind expected");
+          static_cast<implementation*>(this)->send_message(_session_reject);
+          static_cast<implementation*>(this)->disconnect();
+          return;
+        } else
           _recv_seqno.increment();
 
         auto msg_type_location = view.find("\00135=");
@@ -101,6 +107,11 @@ namespace atrfix {
         if(msgtype == consts::msgtype::INVALID) {
           static_cast<implementation*>(this)->disconnect();
           return; 
+        }
+
+        if(msgtype == consts::msgtype::Reject) { // session level reject
+          static_cast<implementation*>(this)->disconnect();
+          return;
         }
 
         if(msgtype == consts::msgtype::Logout) {
@@ -164,6 +175,7 @@ namespace atrfix {
     atrfix::heartbeat _heartbeat_msg;
     atrfix::logon _logon_msg;
     atrfix::sequence_reset _sequence_reset;
+    atrfix::session_reject _session_reject;
     seqno_store _send_seqno;
     seqno_store _recv_seqno; 
   };

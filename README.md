@@ -21,6 +21,16 @@ A: they're overrated - render them yourself using the raw `set_field` functions 
 
 Note: I know they're REALLY important in FICC products and some complex options, I still don't care.
 
+## replay
+
+This engine is written with a client perspective in mind.  If you're an exchange or broker you need to support full replay for your clients, and ask for full resends.  Generally a client will not want to resend orders if they were missed as they're now stale.  As such our policy is:
+
+1. If we send a seqno > than the counterparty expects:  We should get a resend request, we then send a sequence reset to skip ahead (we don't want to resend missed orders).
+2. If we send a seqno < counterparty expects:  We should get 35=3 (session level reject) and we disconnect.
+
+1. If we receive a seqno < we expect: We send 35=3 and disconnect.
+2. If we receive a seqno > we expect: We send a replay request. NOT IMPLEMENTED YET 
+
 ## dependencies
 
 Today we include fmtlib for numerics to strings.  Eventually c++ standard will allow `#include <format>` in which case this is no longer an issue.

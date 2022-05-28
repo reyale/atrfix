@@ -38,6 +38,12 @@ namespace atrfix {
     return end - dest;
   }
 
+  template < size_t N >
+  size_t write_val(char* dest, const char(&field_val)[N]) {
+    auto end = fmt::format_to(dest, "{}\001", std::string_view(field_val, N-1));
+    return end - dest; 
+  }
+
   template < size_t N, typename T >
   size_t write_field(char* dest, const char(&field_name)[N], T && t) {
     ::strncpy(dest, field_name, N - 1);
@@ -173,5 +179,10 @@ namespace atrfix {
   class sequence_reset : public message {
   public:
     sequence_reset(const std::string & beginstr, const std::string & sender_comp_id, const std::string & target_comp_id) : message(beginstr, '4', sender_comp_id, target_comp_id) { }
+  };
+
+  class session_reject : public message {
+  public:
+    session_reject(const std::string & beginstr, const std::string & sender_comp_id, const std::string & target_comp_id) : message(beginstr, '3', sender_comp_id, target_comp_id) { }
   };
 }
