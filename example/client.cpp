@@ -46,6 +46,7 @@ public:
   }
 
   void disconnect() {
+    _logger.log("{}\n", "disconnected");
     _connected = false;
     _logged_in = false;
     _socket.close();
@@ -83,8 +84,10 @@ protected:
     //maintenance timer for session  
     _main_timer.expires_from_now(boost::posix_time::seconds(15)); 
     _main_timer.async_wait([this](const boost::system::error_code& ec) {
-      if(ec) //in practice only happens when io-service destroys and a timer is scheduled 
+      if(ec) { //in practice only happens when io-service destroys and a timer is scheduled 
+        _logger.log("timer failure msg={}", ec.message());
         return;
+      }
 
       maintain_connection();
       schedule_maintenance();
@@ -95,6 +98,7 @@ protected:
     auto [buffer, size] = _read_buffer.write_loc();
     _socket.async_read_some(boost::asio::buffer(buffer, size), [this](const boost::system::error_code& ec, size_t bytes_read) { 
       if(ec) {
+        _logger.log("{} msg={}\n", "failure to read, disconnecting", ec.message());
         disconnect();
         return;
       }

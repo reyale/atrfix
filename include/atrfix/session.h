@@ -10,7 +10,7 @@
 
 namespace atrfix {
 
-  constexpr unsigned int HB_INTERVAL = 45;
+  constexpr unsigned int HB_INTERVAL = 30;
 
   template < clock_interface clock, seqnum_store_interface seqno_store, typename logger, typename implementation > 
   class session {
@@ -22,6 +22,7 @@ namespace atrfix {
         _sequence_reset(beginstr, sendercomp, targetcomp),
         _session_reject(beginstr, sendercomp, targetcomp),
         _hb_interval(_clock.from_seconds(HB_INTERVAL)), 
+        _timeout_hb_interval(_clock.from_seconds(2*HB_INTERVAL)), 
         _logger(log) { }
 
     //for child class to implement
@@ -45,7 +46,7 @@ namespace atrfix {
       }
 
       auto current_time = _clock.current_time();
-      if((current_time - _last_seen_msg) > _hb_interval) {
+      if((current_time - _last_seen_msg) > _timeout_hb_interval) {
         _logger.log("{}\n", "no message seen in hbinterval disconnecting");
         static_cast<implementation*>(this)->disconnect(); 
       }
@@ -192,6 +193,7 @@ namespace atrfix {
     clock::timestamp _last_seen_msg;
     clock::timestamp _last_sent_msg;
     clock::timedelta _hb_interval;
+    clock::timedelta _timeout_hb_interval;
     bool _connected;
     bool _logged_in;
     atrfix::heartbeat _heartbeat_msg;
