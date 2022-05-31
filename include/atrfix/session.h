@@ -33,20 +33,20 @@ namespace atrfix {
 
     void maintain_connection() {
       if(!_connected) {
-        _logger.log("{}", "not connected, attempting to connect");
+        _logger.log("{}\n", "not connected, attempting to connect");
         static_cast<implementation*>(this)->connect(); 
         return;
       }
 
       if(!_logged_in) {
-        _logger.log("connected, but not logged in, attempting to send logon");
+        _logger.log("{}\n", "connected, but not logged in, attempting to send logon");
         send_logon(); 
         return;
       }
 
       auto current_time = _clock.current_time();
       if((current_time - _last_seen_msg) > _hb_interval) {
-        _logger.log("no message seen in hbinterval disconnecting");
+        _logger.log("{}\n", "no message seen in hbinterval disconnecting");
         static_cast<implementation*>(this)->disconnect(); 
       }
 
@@ -110,15 +110,21 @@ namespace atrfix {
         }
 
         if(msgtype == consts::msgtype::Reject) { // session level reject
-          _logger.log("{}", "we received a session level reject, disconnecting");
+          _logger.log("{}\n", "we received a session level reject, disconnecting");
           static_cast<implementation*>(this)->disconnect();
           return;
         }
 
         if(msgtype == consts::msgtype::Logout) {
-          _logger.log("{}", "we received a logout message, disconnecting"); 
+          _logger.log("{}\n", "we received a logout message, disconnecting"); 
           static_cast<implementation*>(this)->disconnect();
           return;
+        }
+
+        if(msgtype == consts::msgtype::TestRequest) {
+          _logger.log("{}\n", "we received a test request message, sending heartbeat"); 
+          static_cast<implementation*>(this)->send_message(_heartbeat_msg);
+          _last_sent_msg = _clock.current_time();
         }
 
         if(msgtype == consts::msgtype::ResendRequest) { //always reset seqno instead of replaying to counterparty, orders would be stale
@@ -134,7 +140,7 @@ namespace atrfix {
             return;
           }
 
-          _logger.log("sending sequence_reset with new end_seqno={}", endseqno + 1);
+          _logger.log("sending sequence_reset with new end_seqno={}\n", endseqno + 1);
 
           _sequence_reset.reset();
           _sequence_reset.set_field(atrfix::fields::GapFillFlag, 'N');
@@ -144,8 +150,8 @@ namespace atrfix {
         }
 
         //handle session login
-        if(msgtype = consts::msgtype::Logon) {
-          _logger.log("received logon msg");
+        if(msgtype == consts::msgtype::Logon) {
+          _logger.log("{}\n", "received logon msg");
           _logged_in = true;
         }
 
@@ -174,7 +180,7 @@ namespace atrfix {
 
     template < size_t N >
     void send_session_reject(seqno invalid_msg_seqno, const char(&msg)[N]) {
-      _logger.log("sending session reject and disconnecting: seqno={} msg={}", invalid_msg_seqno, msg);
+      _logger.log("sending session reject and disconnecting: seqno={} msg={}\n", invalid_msg_seqno, msg);
       _session_reject.reset();
       _session_reject.set_field(atrfix::fields::RefSeqNum, invalid_msg_seqno);
       _session_reject.set_field(atrfix::fields::Text, msg); 

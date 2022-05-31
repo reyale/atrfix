@@ -35,7 +35,7 @@ public:
 
     _socket.async_connect(endpoint, [this](boost::system::error_code ec) {
       if(ec) {
-        _logger.log("{}", "failed to connect"); 
+        _logger.log("{}\n", "failed to connect"); 
         return;
       }
 
@@ -54,7 +54,7 @@ public:
 
   void on_message(const char* buffer, size_t len) {
     _read_buffer.mark_read(len);
-    _logger.log("< {}", render_fix_visible(std::string_view(buffer, len)));
+    _logger.log("< {}\n", render_fix_visible(std::string_view(buffer, len)));
   }
 
   template < typename Message >
@@ -63,13 +63,13 @@ public:
     auto time = std::chrono::system_clock::to_time_t(now);
     const auto& result = msg.render(_send_seqno.current(), time);
 
-    _logger.log("> {}", render_fix_visible(sendv(result))); 
+    _logger.log("> {}\n", render_fix_visible(sendv(result))); 
 
     prime_buffer(result, _send_buffer);
     boost::system::error_code ec;
     boost::asio::write(_socket, _send_buffer, ec); //blocking send
     if(ec) {
-      _logger.log("{}", "failed to send message, disconnecting");
+      _logger.log("{}\n", "failed to send message, disconnecting");
       disconnect();
       return;
     }

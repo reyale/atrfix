@@ -35,6 +35,7 @@ namespace atrfix {
     template < class ... Args >
     size_t log(const char* fmt, Args&&...args) {
       fmt::print(fmt, args...);
+      fflush(stdout); //sigh...
       return 0;
     }
 
