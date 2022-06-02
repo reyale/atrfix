@@ -77,3 +77,7 @@ There's cmake.  It's just there if you want to build examples.  The library is h
 You can build them with cmake if that's your thing. 
 
 "client.cpp" is a boost::asio TCP FIX client.  
+
+## test
+
+There's `test.cpp` which builds `test`.  This just uses asserts as I didn't want to import a whole unit test framework
