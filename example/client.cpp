@@ -23,8 +23,8 @@ using parent_session = atrfix::session<atrfix::default_clock, atrfix::inmemory_s
 
 class example_session : public parent_session { 
 public:
-  example_session(boost::asio::io_service& io, const std::string & host, const std::string & port) 
-    : parent_session("SENDERCOMP", "TARGETCOMP", _logger),  _io_service(io), _socket(io), _main_timer(io), _host(host), _port(std::stoi(port)), 
+  example_session(boost::asio::io_service& io, const std::string & host, const std::string & port, const std::string & sendercomp, const std::string & targetcomp) 
+    : parent_session(sendercomp, targetcomp, _logger),  _io_service(io), _socket(io), _main_timer(io), _host(host), _port(std::stoi(port)), 
        _read_buffer(1024) {
 
     schedule_maintenance();
@@ -32,17 +32,7 @@ public:
 
   void connect() { 
     boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(_host.c_str()), _port);
-
-    _socket.async_connect(endpoint, [this](boost::system::error_code ec) {
-      if(ec) {
-        _logger.log("{}\n", "failed to connect"); 
-        return;
-      }
-
-      _connected = true;
-      send_logon(); 
-      schedule_read(); 
-    });
+    _socket.async_connect(endpoint, [this](boost::system::error_code ec) { handle_connect(ec); });
   }
 
   void disconnect() {
@@ -96,19 +86,35 @@ protected:
 
   void schedule_read() {
     auto [buffer, size] = _read_buffer.write_loc();
-    _socket.async_read_some(boost::asio::buffer(buffer, size), [this](const boost::system::error_code& ec, size_t bytes_read) { 
-      if(ec) {
-        _logger.log("{} msg={}\n", "failure to read, disconnecting", ec.message());
-        disconnect();
-        return;
-      }
-    
-      _read_buffer.mark_write(bytes_read);
-      auto [read_buffer, size] = _read_buffer.read_loc();
-      handle_read(read_buffer, size);
-      _read_buffer.compact();
-      schedule_read(); 
-    });
+    _socket.async_read_some(boost::asio::buffer(buffer, size), 
+            [this](const boost::system::error_code& ec, size_t bytes_read) {
+                read_some(ec, bytes_read);
+              }); 
+  }
+
+  void read_some(const boost::system::error_code ec, size_t bytes_read) {
+    if(ec) {
+      _logger.log("{} msg={}\n", "failure to read, disconnecting", ec.message());
+      disconnect();
+      return;
+    }
+
+    _read_buffer.mark_write(bytes_read);
+    auto [read_buffer, size] = _read_buffer.read_loc();
+    handle_read(read_buffer, size);
+    _read_buffer.compact();
+    schedule_read();
+  }
+
+  void handle_connect(boost::system::error_code ec) {
+    if(ec) {
+      _logger.log("{}\n", "failed to connect");
+      return;
+    }
+
+    _connected = true;
+    send_logon();
+    schedule_read();
   }
 
   boost::asio::io_service& _io_service;
@@ -141,7 +147,11 @@ int main(int argc, char* argv[])
 
   boost::asio::io_service io_service;
 
-  example_session session(io_service, argv[1], argv[2]);
+  //whatever is relevant
+  const std::string sender("SENDERCOMP");
+  const std::string target("TARGETCOMP");
+
+  example_session session(io_service, argv[1], argv[2], sender, target);
 
   running = true;
   while(running)
