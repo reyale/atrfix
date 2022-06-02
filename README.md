@@ -28,8 +28,8 @@ This engine is written with a client perspective in mind.  If you're an exchange
 1. If we send a seqno > than the counterparty expects:  We should get a resend request, we then send a sequence reset to skip ahead (we don't want to resend missed orders).
 2. If we send a seqno < counterparty expects:  We should get 35=3 (session level reject) and we disconnect.
 
-1. If we receive a seqno < we expect: We send 35=3 and disconnect.
-2. If we receive a seqno > we expect: We send a replay request. NOT IMPLEMENTED YET 
+1. If we receive a seqno < we expect: TODO: change to disconnect, for now this helps testing  
+2. If we receive a seqno > we expect: We send a replay request. NOT IMPLEMENTED YET - we disconnect 
 
 ## dependencies
 

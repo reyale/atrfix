@@ -93,8 +93,7 @@ namespace atrfix {
         }
 
         if(seqno < _recv_seqno.current()) {
-          send_session_reject(seqno, "seqno is behind expected");
-          return;
+          _recv_seqno.set(seqno + 1); 
         } else
           _recv_seqno.increment();
 
@@ -144,7 +143,7 @@ namespace atrfix {
           _logger.log("sending sequence_reset with new end_seqno={}\n", endseqno + 1);
 
           _sequence_reset.reset();
-          _sequence_reset.set_field(atrfix::fields::GapFillFlag, 'N');
+          _sequence_reset.set_field(atrfix::fields::GapFillFlag, "N");
           _sequence_reset.set_field(atrfix::fields::NewSeqNo, endseqno + 1);
           static_cast<implementation*>(this)->send_message(_sequence_reset);
           _send_seqno.set(endseqno + 1); //the next thing we will send is beyond the end of the replay request
