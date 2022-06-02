@@ -41,6 +41,13 @@ namespace atrfix {
     }
   }
 
+  template < typename Container >
+  void hash_parse(const char* msg, size_t len, Container & container) {
+    parse_message(msg, len, [&container](int tag, const char* start, size_t len) {
+       container[tag] = Container::value_type(start, len); //if there are duplicate tags this gets the last one, but that's probably fine
+    }); 
+  }
+
   inline seqno parse_seqno_value(const char* field, size_t len) {
     if(field == nullptr || len <= 0)
       return -1;
