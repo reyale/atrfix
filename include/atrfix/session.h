@@ -156,7 +156,7 @@ namespace atrfix {
         }
 
         _last_seen_msg = _clock.current_time();
-        static_cast<implementation*>(this)->on_message(working_loc, loc+8);
+        static_cast<implementation*>(this)->on_message(msgtype, working_loc, loc+8);
         working_loc += loc + 8;
       }
     }

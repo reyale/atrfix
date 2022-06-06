@@ -45,10 +45,15 @@ public:
     _read_buffer.reset();
   }
 
-  void on_message(const char* buffer, size_t len) {
+  void on_message(char msgtype, const char* buffer, size_t len) {
     _read_buffer.mark_read(len);
-    _logger.log("< {}\n", render_fix_visible(std::string_view(buffer, len)));
+    _logger.log("< msgtype={} {}\n", msgtype, render_fix_visible(std::string_view(buffer, len)));
+    if(len > 0)
+      on_application_message(msgtype, buffer, len);
   }
+
+  //This is unnecessary, but makes things simple for example client
+  virtual void on_application_message(char msgtype, const char* buffer, size_t len) = 0;
 
   template < typename Message >
   void send_message(Message & msg) {

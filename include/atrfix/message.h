@@ -185,4 +185,9 @@ namespace atrfix {
   public:
     session_reject(const std::string & beginstr, const std::string & sender_comp_id, const std::string & target_comp_id) : message(beginstr, '3', sender_comp_id, target_comp_id) { }
   };
+
+  class new_order_single : public message {
+  public:
+    new_order_single(const std::string & beginstr, const std::string & sender_comp_id, const std::string & target_comp_id) : message(beginstr, 'D', sender_comp_id, target_comp_id) { }
+  };
 }

@@ -12,6 +12,22 @@ namespace atrfix {
     { fun(int(), "test", size_t()) };
   };
 
+  template < typename String >
+  concept string_like = requires(String str) {
+    { str.data() } -> const char*;
+    { str.size() } -> size_t;
+  };
+
+  template < string_like T >  
+  int parse(T t, int error_result=std::numeric_limits<int>::min()) {
+    int result;
+    auto parse_res = std::from_chars(t.data(), t.data() + t.size(), result);
+    if(parse_res.ec == std::errc())
+      return error_result;
+
+    return result; 
+  }
+
   template < token_parse_func OnField >
   void parse_message(const char* msg, size_t len, OnField field_func) {
     const char* token_start = msg;
@@ -44,7 +60,8 @@ namespace atrfix {
   template < typename Container >
   void hash_parse(const char* msg, size_t len, Container & container) {
     parse_message(msg, len, [&container](int tag, const char* start, size_t len) {
-       container[tag] = Container::value_type(start, len); //if there are duplicate tags this gets the last one, but that's probably fine
+       using value_type = typename Container::mapped_type;
+       container[tag] = value_type(start, len); //if there are duplicate tags this gets the last one, but that's probably fine
     }); 
   }
 
