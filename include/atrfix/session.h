@@ -104,30 +104,30 @@ namespace atrfix {
         }
 
         char msgtype = parse_msg_type(working_loc + msg_type_location);
-        if(msgtype == consts::msgtype::INVALID) {
+        if(msgtype == msgtype::INVALID) {
           send_session_reject(seqno, "invalid msg type");
           return; 
         }
 
-        if(msgtype == consts::msgtype::Reject) { // session level reject
+        if(msgtype == msgtype::Reject) { // session level reject
           _logger.log("{}\n", "we received a session level reject, disconnecting");
           static_cast<implementation*>(this)->disconnect();
           return;
         }
 
-        if(msgtype == consts::msgtype::Logout) {
+        if(msgtype == msgtype::Logout) {
           _logger.log("{}\n", "we received a logout message, disconnecting"); 
           static_cast<implementation*>(this)->disconnect();
           return;
         }
 
-        if(msgtype == consts::msgtype::TestRequest) {
+        if(msgtype == msgtype::TestRequest) {
           _logger.log("{}\n", "we received a test request message, sending heartbeat"); 
           static_cast<implementation*>(this)->send_message(_heartbeat_msg);
           _last_sent_msg = _clock.current_time();
         }
 
-        if(msgtype == consts::msgtype::ResendRequest) { //always reset seqno instead of replaying to counterparty, orders would be stale
+        if(msgtype == msgtype::ResendRequest) { //always reset seqno instead of replaying to counterparty, orders would be stale
           auto endseqno_loc = view.find("\00116=");
           if(endseqno_loc == std::string_view::npos) {
             send_session_reject(seqno, "received a ResendRequest without end seqno"); 
@@ -150,7 +150,7 @@ namespace atrfix {
         }
 
         //handle session login
-        if(msgtype == consts::msgtype::Logon) {
+        if(msgtype == msgtype::Logon) {
           _logger.log("{}\n", "received logon msg");
           _logged_in = true;
         }

@@ -77,7 +77,7 @@ protected:
   }
 
   void on_application_message(char msgtype, const char* buffer, size_t len) {
-    if(msgtype != atrfix::consts::msgtype::ExecutionReport)
+    if(msgtype != atrfix::msgtype::ExecutionReport)
       return;
 
     /*simple non-performant parse to a hash as an example

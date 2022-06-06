@@ -132,10 +132,10 @@ namespace atrfix {
     auto msg2 = reinterpret_cast<const msgtype2*>(buffer);
     if(msg2->end_delim == consts::FIELD_DELIM) {
       //TODO - unhandled for now
-      return consts::msgtype::INVALID; 
+      return msgtype::INVALID; 
     }
 
-    return consts::msgtype::INVALID;
+    return msgtype::INVALID;
   }
 
 }
