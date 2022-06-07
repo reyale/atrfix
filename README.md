@@ -8,7 +8,7 @@ There is a suprising lack of options in the open-source world for this.  QuickFI
 
 - header only
 - minimal dependencies
-- easily integrated in to reactor or proactor frameworks like boost:asio, libevent, ect
+- easily integrated in to reactor or proactor frameworks like boost::asio, libevent, ect
 - seperation of session and message creation/parsing
 - fast
 - examples provided
