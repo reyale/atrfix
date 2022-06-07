@@ -82,7 +82,7 @@ You can build them with cmake if that's your thing.
 
 There's `test.cpp` which builds `test`.  This just uses asserts as I didn't want to import a whole unit test framework
 
-# TODO
+## TODO
 
 1. Replay support if received seqno > expected
 2. seqno mmap persist 
