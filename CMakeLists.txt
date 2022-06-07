@@ -15,7 +15,6 @@ include_directories(include thirdparty example/include)
 find_package(Boost COMPONENTS thread REQUIRED)
 
 # add the executable
-add_executable(server example/server.cpp)
 add_executable(client example/client.cpp)
 add_executable(test example/test.cpp)
 
