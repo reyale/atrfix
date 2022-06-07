@@ -33,7 +33,7 @@ fix session that is reusable across transport and event framework (boost::asio, 
 3. Calls to `handle_read` will call you back with raw messages via `on_message`
 4. The user handles final FIX message sending via `send_message` 
 5. The user handles transport connection via `connect`
-6. the use rhandles transport disconnection via `disconnect`
+6. the user handles transport disconnection via `disconnect`
 
 Since the user is in control of the transport symantics and final sending the rendered messages on the wire this framework could be used to send messaes over things such as:
 
@@ -76,7 +76,7 @@ There's cmake.  It's just there if you want to build examples.  The library is h
 
 You can build them with cmake if that's your thing. 
 
-"client.cpp" is a boost::asio TCP FIX client.  
+`example/client.cpp` is a boost::asio TCP FIX client.  
 
 ## test
 
